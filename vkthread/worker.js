@@ -11,7 +11,7 @@
 /* global Promise, self, postMessage, importScripts, onmessage:true */
 /* use packer http://dean.edwards.name/packer/ */
 (function() {
-  'use strict';
+  "use strict";
 
   var JSONfn = {
     parse:function (str, date2obj) {
@@ -21,7 +21,7 @@
         var prefix,
             func, fnArgs, fnBody ;
 
-        if (typeof value !== 'string') {
+        if (typeof value !== "string") {
           return value;
         }
         if (value.length < 8) {
@@ -33,23 +33,23 @@
         if (iso8061 && value.match(iso8061)) {
           return new Date(value);
         }
-        if (prefix === 'function') {
-          return eval('(' + value + ')');
+        if (prefix === "function") {
+          return eval("(" + value + ")");
         }
-        if (prefix === '_PxEgEr_') {
+        if (prefix === "_PxEgEr_") {
           return eval(value.slice(8));
         }
-        if (prefix === '_NuFrRa_') {
-          func = value.slice(8).trim().split('=>');
+        if (prefix === "_NuFrRa_") {
+          func = value.slice(8).trim().split("=>");
           fnArgs = func[0].trim();
           fnBody = func[1].trim();
-          if(fnArgs.indexOf('(') < 0) {
-            fnArgs = '('+ fnArgs +')';
+          if(fnArgs.indexOf("(") < 0) {
+            fnArgs = "("+ fnArgs +")";
           }
-          if(fnBody.indexOf('{') < 0) {
-            fnBody = '{ return '+ fnBody +'}';
+          if(fnBody.indexOf("{") < 0) {
+            fnBody = "{ return "+ fnBody +"}";
           }
-          return eval('(' + 'function' + fnArgs + fnBody +')');
+          return eval("(" + "function" + fnArgs + fnBody +")");
         }
 
         return value;
@@ -65,8 +65,8 @@
       importScripts.apply(null, obj.importFiles);
     }
 
-    if (typeof obj.fn === 'function') { //regular function
-      if (typeof Promise !== 'undefined') {
+    if (typeof obj.fn === "function") { //regular function
+      if (typeof Promise !== "undefined") {
         Promise.resolve(obj.fn.apply(cntx, obj.args))
                .then(function(data){postMessage(data);})
                .catch(function(reason){postMessage(reason);});
@@ -88,8 +88,8 @@
 function vkhttp(cfg){
 
   var body = cfg.body  ? JSON.stringify(cfg.body) : null,
-      contentType = cfg.contentType || 'application/json',
-      method = cfg.method ? cfg.method.toUpperCase() : 'GET',
+      contentType = cfg.contentType || "application/json",
+      method = cfg.method ? cfg.method.toUpperCase() : "GET",
       headers = cfg.headers && !Array.isArray(cfg.headers) ? cfg.headers : {},
       xhr = new XMLHttpRequest(),
       ret;
@@ -98,7 +98,7 @@ function vkhttp(cfg){
     if (xhr.status >= 200 && xhr.status < 300) {
       ret = xhr.responseText;
     } else {
-      ret = 'Error: ' + xhr.status + xhr.statusText;
+      ret = "Error: " + xhr.status + xhr.statusText;
     }
   };
 
@@ -107,8 +107,8 @@ function vkhttp(cfg){
   };
 
   xhr.open(method, cfg.url, false); //synchronous request
-  if(method === 'POST') {
-    xhr.setRequestHeader('Content-Type', contentType);
+  if(method === "POST" || method === "PUT" || method === "PATCH") {
+    xhr.setRequestHeader("Content-Type", contentType);
   }
 
   //set additional headers
