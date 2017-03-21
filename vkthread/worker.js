@@ -9,7 +9,7 @@
 
 /* jshint -W074, -W117, -W061*/
 /* global Promise, self, postMessage, importScripts, onmessage:true */
-
+/* use packer http://dean.edwards.name/packer/ */
 (function() {
   'use strict';
 
@@ -90,6 +90,7 @@ function vkhttp(cfg){
   var body = cfg.body  ? JSON.stringify(cfg.body) : null,
       contentType = cfg.contentType || 'application/json',
       method = cfg.method ? cfg.method.toUpperCase() : 'GET',
+      headers = cfg.headers && !Array.isArray(cfg.headers) ? cfg.headers : {},
       xhr = new XMLHttpRequest(),
       ret;
 
@@ -109,6 +110,15 @@ function vkhttp(cfg){
   if(method === 'POST') {
     xhr.setRequestHeader('Content-Type', contentType);
   }
+
+  //set additional headers
+  var keys = Object.keys(headers);
+  if (keys.length > 0) {
+    keys.forEach(function(key) {
+      xhr.setRequestHeader(key, headers[key]);
+    })
+  };
+
   xhr.send(body);
 
   return ret;
