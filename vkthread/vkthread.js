@@ -52,7 +52,7 @@
         this.$get = function($q){
 
             var VkThread = function(){
-                this.version = '2.5.0';
+                this.version = '2.5.0-1';
                 this.getVersion = function(){
                     return this.version;
                 };
