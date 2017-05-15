@@ -10,119 +10,156 @@
 /* jshint -W074, -W117, -W061*/
 /* global Promise, self, postMessage, importScripts, onmessage:true */
 /* use packer http://dean.edwards.name/packer/ */
+/* http://stackoverflow.com/questions/16713925/angularjs-and-web-workers */
 (function() {
-  "use strict";
+    "use strict";
 
-  var JSONfn = {
-    parse:function (str, date2obj) {
-          var iso8061 = date2obj ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/ : false;
+    var JSONfn = {
+        parse: function(str, date2obj) {
+            var iso8061 = date2obj ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/ : false;
 
-      return JSON.parse(str, function (key, value) {
-        var prefix,
-            func, fnArgs, fnBody ;
+            return JSON.parse(str, function(key, value) {
+                var prefix,
+                    func, fnArgs, fnBody;
 
-        if (typeof value !== "string") {
-          return value;
+                if (typeof value !== "string") {
+                    return value;
+                }
+                if (value.length < 8) {
+                    return value;
+                }
+
+                prefix = value.substring(0, 8);
+
+                if (iso8061 && value.match(iso8061)) {
+                    return new Date(value);
+                }
+                if (prefix === "function") {
+                    return eval("(" + value + ")");
+                }
+                if (prefix === "_PxEgEr_") {
+                    return eval(value.slice(8));
+                }
+                if (prefix === "_NuFrRa_") {
+                    func = value.slice(8).trim().split("=>");
+                    fnArgs = func[0].trim();
+                    fnBody = func[1].trim();
+                    if (fnArgs.indexOf("(") < 0) {
+                        fnArgs = "(" + fnArgs + ")";
+                    }
+                    if (fnBody.indexOf("{") < 0) {
+                        fnBody = "{ return " + fnBody + "}";
+                    }
+                    return eval("(" + "function" + fnArgs + fnBody + ")");
+                }
+
+                return value;
+            });
         }
-        if (value.length < 8) {
-          return value;
+    };
+
+    onmessage = function(e) {
+        var obj = JSONfn.parse(e.data, true),
+            cntx = obj.context || self;
+
+        if (obj.importFiles) {
+            importScripts.apply(null, obj.importFiles);
         }
 
-        prefix = value.substring(0, 8);
+        if (typeof obj.fn === "function") { //regular function
+            if (typeof Promise !== "undefined") {
+                Promise.resolve(obj.fn.apply(cntx, obj.args))
+                    .then(function(data) { postMessage(data); })
+                    .catch(function(reason) { postMessage(reason); });
+            } else {
+                // to satisfy IE
+                postMessage(obj.fn.apply(cntx, obj.args));
+            }
 
-        if (iso8061 && value.match(iso8061)) {
-          return new Date(value);
+        } else { //ES6 arrow function
+            postMessage(self[obj.fn].apply(cntx, obj.args));
         }
-        if (prefix === "function") {
-          return eval("(" + value + ")");
-        }
-        if (prefix === "_PxEgEr_") {
-          return eval(value.slice(8));
-        }
-        if (prefix === "_NuFrRa_") {
-          func = value.slice(8).trim().split("=>");
-          fnArgs = func[0].trim();
-          fnBody = func[1].trim();
-          if(fnArgs.indexOf("(") < 0) {
-            fnArgs = "("+ fnArgs +")";
-          }
-          if(fnBody.indexOf("{") < 0) {
-            fnBody = "{ return "+ fnBody +"}";
-          }
-          return eval("(" + "function" + fnArgs + fnBody +")");
-        }
+    };
 
-        return value;
-      });
+    /*
+     * XMLHttpRequest in plain javascript;
+     */
+    function Response(data, status, message) {
+        this.data = data;
+        this.status = status;
+        this.message = message;
     }
-  };
 
-  onmessage = function(e) {
-    var obj = JSONfn.parse(e.data, true),
-        cntx = obj.context || self;
+    function vkhttp(cfg) {
 
-    if (obj.importFiles) {
-      importScripts.apply(null, obj.importFiles);
+        var body = cfg.body ? JSON.stringify(cfg.body) : null,
+            contentType = cfg.contentType || "application/json",
+            method = cfg.method ? cfg.method.toUpperCase() : "GET",
+            headers = cfg.headers && !Array.isArray(cfg.headers) ? cfg.headers : {},
+            timeout = cfg.timeout ? cfg.timeout : 30000, //default timeout in miliseconds (30 seconds)
+            xhr = new XMLHttpRequest(),
+            ret;
+
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                ret = new Response(xhr.responseText, xhr.status, xhr.statusText);
+            } else {
+                // ret = "Error: " + xhr.status + xhr.statusText;
+                // console.log("onload", ret);
+                ret = new Response("ERROR", xhr.status, xhr.statusText);
+            }
+        };
+
+        xhr.onerror = function(data) {
+            // ret = "Error: " + xhr.status + xhr.statusText;
+            // console.log("onerror", ret);
+            ret = new Response("ERROR", xhr.status, xhr.statusText);
+        };
+
+        // xhr.onabort = function() {
+        //   console.log("onabort");
+        //   ret = "Error: timeout";
+        // }
+
+        xhr.open(method, cfg.url, false); //synchronous request
+        if (method === "POST" || method === "PUT" || method === "PATCH") {
+            xhr.setRequestHeader("Content-Type", contentType);
+        }
+
+        //set additional headers
+        var keys = Object.keys(headers);
+        if (keys.length > 0) {
+            keys.forEach(function(key) {
+                xhr.setRequestHeader(key, headers[key]);
+            })
+        };
+
+
+        //NOTE!!! All timeout model cannot be working since ajax use syncronous model.
+
+        // console.log("timeout", timeout);
+
+        //set timeout
+        // var timer = setTimeout(function() { /* vs. a.timeout */
+        //     console.log("aborting...");
+        //     console.log(xhr.readyState);
+        //     if (xhr.readyState < 4) {
+        //         xhr.abort();
+        //         console.log("aborted");
+        //     }
+        // }, timeout);
+
+
+        // xhr.timeout = timeout;
+        // xhr.ontimeout = function(e) {
+        //    ret = new Response("ERROR", xhr.status, xhr.statusText);
+        // }
+
+        xhr.send(body);
+
+        // clearTimeout(timer);
+
+        return ret;
     }
-
-    if (typeof obj.fn === "function") { //regular function
-      if (typeof Promise !== "undefined") {
-        Promise.resolve(obj.fn.apply(cntx, obj.args))
-               .then(function(data){postMessage(data);})
-               .catch(function(reason){postMessage(reason);});
-      } else {
-        // to satisfy IE
-        postMessage(obj.fn.apply(cntx, obj.args));
-      }
-
-    }
-    else { //ES6 arrow function
-      postMessage(self[obj.fn].apply(cntx, obj.args));
-    }
-  };
-
-/*
- * XMLHttpRequest in plain javascript;
- */
-
-function vkhttp(cfg){
-
-  var body = cfg.body  ? JSON.stringify(cfg.body) : null,
-      contentType = cfg.contentType || "application/json",
-      method = cfg.method ? cfg.method.toUpperCase() : "GET",
-      headers = cfg.headers && !Array.isArray(cfg.headers) ? cfg.headers : {},
-      xhr = new XMLHttpRequest(),
-      ret;
-
-  xhr.onload = function () {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      ret = xhr.responseText;
-    } else {
-      ret = "Error: " + xhr.status + xhr.statusText;
-    }
-  };
-
-  xhr.onerror = function (data) {
-    ret = xhr.status + xhr.statusText;
-  };
-
-  xhr.open(method, cfg.url, false); //synchronous request
-  if(method === "POST" || method === "PUT" || method === "PATCH") {
-    xhr.setRequestHeader("Content-Type", contentType);
-  }
-
-  //set additional headers
-  var keys = Object.keys(headers);
-  if (keys.length > 0) {
-    keys.forEach(function(key) {
-      xhr.setRequestHeader(key, headers[key]);
-    })
-  };
-
-  xhr.send(body);
-
-  return ret;
-}
 
 }());
-
