@@ -105,15 +105,15 @@
                 ret = new Response(xhr.responseText, xhr.status, xhr.statusText);
             } else {
                 // ret = "Error: " + xhr.status + xhr.statusText;
-                // console.log("onload", ret);
                 ret = new Response("ERROR", xhr.status, xhr.statusText);
+                // console.log("onload", ret);
             }
         };
 
         xhr.onerror = function(data) {
             // ret = "Error: " + xhr.status + xhr.statusText;
-            // console.log("onerror", ret);
             ret = new Response("ERROR", xhr.status, xhr.statusText);
+            // console.log("onerror", ret);
         };
 
         // xhr.onabort = function() {
@@ -155,7 +155,15 @@
         //    ret = new Response("ERROR", xhr.status, xhr.statusText);
         // }
 
-        xhr.send(body);
+        //try to handle server unavailable and differentiate with other ajax error,
+        //unsuccessful for now
+        try {
+            xhr.send(body);
+        } catch(e) {
+            ret = new Response("ERROR", xhr.status, xhr.statusText);
+            // console.log("catch ", ret);
+        }
+
 
         // clearTimeout(timer);
 
