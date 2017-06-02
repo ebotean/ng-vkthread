@@ -84,10 +84,26 @@
     /*
      * XMLHttpRequest in plain javascript;
      */
-    function Response(data, status, message) {
+    function Response(data, status, message, DOMHeaders) {
         this.data = data;
         this.status = status;
         this.message = message;
+        this.headers = DOMHeaders;
+        // try {
+        //     var headers = {};
+        //     if (DOMHeaders != null) {
+        //         DOMHeaders.split("\r\n").forEach(function(item) {
+        //             var items = item.split(":");
+        //             if (items.length == 2) {
+        //                 headers[items[0].trim()] = items[1].trim();
+        //             }
+        //         });
+        //     }
+
+        //     this.headers = headers;
+        // } catch(e) {
+        //     this.headers = {};
+        // }
     }
 
     function vkhttp(cfg) {
@@ -101,18 +117,18 @@
             ret;
 
         xhr.onload = function() {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                ret = new Response(xhr.responseText, xhr.status, xhr.statusText);
-            } else {
+            // if (xhr.status >= 200 && xhr.status < 300) {
+                ret = new Response(xhr.responseText, xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
+            // } else {
                 // ret = "Error: " + xhr.status + xhr.statusText;
-                ret = new Response("ERROR", xhr.status, xhr.statusText);
+                // ret = new Response("ERROR", xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
                 // console.log("onload", ret);
-            }
+            // }
         };
 
         xhr.onerror = function(data) {
             // ret = "Error: " + xhr.status + xhr.statusText;
-            ret = new Response("ERROR", xhr.status, xhr.statusText);
+            ret = new Response("ERROR", xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
             // console.log("onerror", ret);
         };
 
@@ -160,7 +176,7 @@
         try {
             xhr.send(body);
         } catch(e) {
-            ret = new Response("ERROR", xhr.status, xhr.statusText);
+            ret = new Response("ERROR", xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
             // console.log("catch ", ret);
         }
 
