@@ -176,7 +176,7 @@
         try {
             xhr.send(body);
         } catch(e) {
-            ret = new Response("ERROR", xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
+            ret = new Response("ERROR_CATCH", xhr.status, e.message, xhr.getAllResponseHeaders());
             // console.log("catch ", ret);
         }
 
