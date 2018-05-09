@@ -69,8 +69,12 @@
         if (typeof obj.fn === "function") { //regular function
             if (typeof Promise !== "undefined") {
                 Promise.resolve(obj.fn.apply(cntx, obj.args))
-                    .then(function(data) { postMessage(data); })
-                    .catch(function(reason) { postMessage(reason); });
+                    .then(function(data) {
+                        postMessage(data);
+                    })
+                    .catch(function(reason) {
+                        postMessage(reason);
+                    });
             } else {
                 // to satisfy IE
                 postMessage(obj.fn.apply(cntx, obj.args));
@@ -122,10 +126,11 @@
         //   ret = "Error: timeout";
         // }
 
-        xhr.open(method, cfg.url, false); //synchronous request
-        if (method === "POST" || method === "PUT" || method === "PATCH") {
+if (method === "POST" || method === "PUT" || method === "PATCH") {
             xhr.setRequestHeader("Content-Type", contentType);
         }
+        
+        
 
         //set additional headers
         var keys = Object.keys(headers);
@@ -135,7 +140,7 @@
             })
         };
 
-
+        xhr.open(method, cfg.url, true); //synchronous request
         //NOTE!!! All timeout model cannot be working since ajax use syncronous model.
 
         // console.log("timeout", timeout);
@@ -160,7 +165,7 @@
         //unsuccessful for now
         try {
             xhr.send(body);
-        } catch(e) {
+        } catch (e) {
             ret = new Response("ERROR", xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
             // console.log("catch ", ret);
         }
