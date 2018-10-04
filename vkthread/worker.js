@@ -101,7 +101,7 @@
             contentType = cfg.contentType || "application/json",
             method = cfg.method ? cfg.method.toUpperCase() : "GET",
             headers = cfg.headers && !Array.isArray(cfg.headers) ? cfg.headers : {},
-            timeout = cfg.timeout ? cfg.timeout : 30000, //default timeout in miliseconds (30 seconds)
+            timeout = cfg.timeout ? cfg.timeout : 60000, //default timeout in miliseconds (60 seconds)
             xhr = new XMLHttpRequest(),
             ret;
 
@@ -121,29 +121,29 @@
             // console.log("onerror", ret);
         };
 
+        xhr.ontimeout = function(e) {
+            ret = new Response("ERROR", xhr.status, xhr.statusText);
+        };
         // xhr.onabort = function() {
         //   console.log("onabort");
         //   ret = "Error: timeout";
         // }
 
-if (method === "POST" || method === "PUT" || method === "PATCH") {
+        xhr.open(method, cfg.url, false); //synchronous request
+
+        xhr.timeout = timeout;
+
+        if (method === "POST" || method === "PUT" || method === "PATCH") {
             xhr.setRequestHeader("Content-Type", contentType);
         }
-        
-        
 
         //set additional headers
         var keys = Object.keys(headers);
         if (keys.length > 0) {
             keys.forEach(function(key) {
                 xhr.setRequestHeader(key, headers[key]);
-            })
+            });
         };
-
-        xhr.open(method, cfg.url, true); //synchronous request
-        //NOTE!!! All timeout model cannot be working since ajax use syncronous model.
-
-        // console.log("timeout", timeout);
 
         //set timeout
         // var timer = setTimeout(function() { /* vs. a.timeout */
@@ -155,11 +155,6 @@ if (method === "POST" || method === "PUT" || method === "PATCH") {
         //     }
         // }, timeout);
 
-
-        // xhr.timeout = timeout;
-        // xhr.ontimeout = function(e) {
-        //    ret = new Response("ERROR", xhr.status, xhr.statusText);
-        // }
 
         //try to handle server unavailable and differentiate with other ajax error,
         //unsuccessful for now
@@ -174,6 +169,6 @@ if (method === "POST" || method === "PUT" || method === "PATCH") {
         // clearTimeout(timer);
 
         return ret;
-    }
+    };
 
 }());
