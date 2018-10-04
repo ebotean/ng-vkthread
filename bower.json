@@ -1,5 +1,5 @@
 {
-  "name": "angcap/ng-vkthread",
+  "name": "ng-vkthread",
   "description": "An Angular plugin to execute a function in a thread",
   "main": "vkthread/vkthread.js",
   "authors": [
