@@ -4,7 +4,7 @@
   "main": "vkthread/vkthread.js",
   "authors": [
     "Vadim Kiryukhin <vkiryukhin@gmail.com>",
-    "Angelo Capone <angcap@gmail.com>
+    "Angelo Capone <angcap@gmail.com>"
   ],
   "license": "MIT",
   "keywords": [
