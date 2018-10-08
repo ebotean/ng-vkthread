@@ -122,7 +122,7 @@
         };
 
         xhr.ontimeout = function(e) {
-            ret = new Response("ERROR", xhr.status, xhr.statusText);
+            ret = new Response("TIMEOUT", xhr.status, xhr.statusText);
         };
         // xhr.onabort = function() {
         //   console.log("onabort");
