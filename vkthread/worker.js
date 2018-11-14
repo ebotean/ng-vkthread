@@ -110,7 +110,7 @@
                 ret = new Response(xhr.responseText, xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
             } else {
                 // ret = "Error: " + xhr.status + xhr.statusText;
-                ret = new Response("ERROR", xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
+                ret = new Response(xhr.status == 0 ? "TIMEOUT" : "ERROR", xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
                 // console.log("onload", ret);
             }
         };
@@ -161,7 +161,7 @@
         try {
             xhr.send(body);
         } catch (e) {
-            ret = new Response("ERROR", xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
+            ret = new Response(xhr.status == 0 ? "TIMEOUT" : "ERROR", xhr.status, xhr.statusText, xhr.getAllResponseHeaders());
             // console.log("catch ", ret);
         }
 
