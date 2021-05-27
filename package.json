@@ -1,0 +1,19 @@
+{
+  "name": "ng-vkthread",
+  "description": "Forked version from angcap/ng-vkthread substantially to add a package.json and allow the dependency to be managed through npm.",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ebotean/ng-vkthread.git"
+  },
+  "keywords": [],
+  "author": "Angelo Capone",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ebotean/ng-vkthread/issues"
+  },
+  "homepage": "https://github.com/ebotean/ng-vkthread"
+}
